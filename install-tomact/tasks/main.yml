@@ -1,0 +1,67 @@
+---
+# tasks file for install-tomact
+- name: Update all packages to their latest version
+  apt:
+    update_cache: yes
+    force_apt_get: yes
+- name: Create a Tomcat User
+  user:
+    name: tomcat
+ 
+- name: Create a Tomcat Group
+  group:
+    name: tomcat
+- name: Creates directory
+  file:
+    path: /opt/tomcat9
+    state: directory
+    owner: tomcat
+    group: tomcat
+    mode: 0775
+    recurse: yes
+- name: Install JAVA
+  apt:
+    name: default-jdk
+    state: present
+- name: download & unarchive tomcat10 
+  get_url:
+    url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.85/bin/apache-tomcat-9.0.85.tar.gz
+    dest: /opt/tomcat9/
+- name: Unarchive a the tomcat file
+  unarchive: 
+    src: /opt/tomcat9/apache-tomcat-9.0.85.tar.gz
+    dest: /opt/tomcat9/
+- name: Recursively change ownership /opt/tomcat9
+  file:
+    path: /opt/tomcat9/
+    state: directory
+    recurse: yes
+    owner: tomcat
+    group: tomcat
+      #/opt/tomcat9/apache-tomcat-9.0.85/bin/startup.sh
+- name: provide the manager permission
+  template:
+    src: tomcat-users.xml
+    dest: /opt/tomcat9/apache-tomcat-9.0.85/conf/
+- name: provide the manager permission
+  template:
+    src: context.xml
+    dest: /opt/tomcat9/apache-tomcat-9.0.85/webapps/manager/META-INF/
+
+- name: Go to /opt/tomcat9/apache-tomcat-9.0.85/bin/ & start tomcat using script /opt/tomcat9/apache-tomcat-9.0.85/bin/startup.sh
+  shell:
+    cmd: /opt/tomcat9/apache-tomcat-9.0.85/bin/startup.sh 
+    chdir: /
+      #/opt/tomcat9/apache-tomcat-9.0.85/webapps/manager/META-INF/context.xml
+#- name: Replace line in file /opt/tomcat9/apache-tomcat-9.0.85/webapps/manager/META-INF/context.xml
+#  lineinfile:
+#    path: /opt/tomcat9/apache-tomcat-9.0.85/webapps/manager/META-INF/context.xml
+#    regex: '^(.*)<Valve className="org.apache.catal(.*)$'
+#    line: '  <!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"'
+#    backrefs: yes
+#- name: Replace another line in file /opt/tomcat9/apache-tomcat-9.0.85/webapps/manager/META-INF/context.xml
+#  lineinfile:
+#    path: /opt/tomcat9/apache-tomcat-9.0.85/webapps/manager/META-INF/context.xml
+#    regex: '^(.*)  allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:(.*)$'
+#    line: '  allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />-->'
+#    backrefs: yes
